@@ -115,6 +115,12 @@ Compose создаёт базу `space_marine`; Flyway создаёт схемы
 
 Для запуска без Docker:
 
+Для включения HTTPS в каждом сервисе передайте пути к существующим PEM-файлам через переменные окружения
+`TLS_ENABLED=true`, `TLS_CERTIFICATE_PATH=file:/абсолютный/путь/fullchain.pem` и
+`TLS_PRIVATE_KEY_PATH=file:/абсолютный/путь/privkey.pem`. Без `TLS_ENABLED` сервисы продолжают работать по HTTP.
+Если HTTPS включён у `collection-service`, задайте для `starship-service` также
+`COLLECTION_URL=https://localhost:8081/api/v1` и обеспечьте доверие его клиента к сертификату.
+
 Из `lab2` выполните `./mvnw.cmd clean verify` в PowerShell (на Linux/macOS - `./mvnw clean verify`). Maven Wrapper
 загрузит Maven автоматически; нужен Java 21 и доступ к Maven Central при первой сборке. При установленном Maven также
 работает `mvn clean verify`. Каждый дочерний проект можно собирать отдельно через собственный pom.xml, например
