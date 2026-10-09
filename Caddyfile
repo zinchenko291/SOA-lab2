@@ -1,11 +1,9 @@
 :80 {
-    handle_path /api/collection-service/* {
-        rewrite * /api/v1{path}
+    handle /api/v1/space-marines* {
         reverse_proxy collection-service:8081
     }
 
-    handle_path /api/starship-service/* {
-        rewrite * /api/v1{path}
+    handle /api/v1/starship* {
         reverse_proxy starship-service:8082
     }
 

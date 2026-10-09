@@ -104,11 +104,11 @@ Compose создаёт базу `space_marine`; Flyway создаёт схемы
 `postgres_data`. Сервисы доступны на портах `8081` и `8082`, PostgreSQL - на `5432` (можно изменить порт хоста через
 `DB_PORT`). Caddy слушает порт `80` (или `CADDY_PORT`) и перенаправляет запросы:
 
-| Внешний путь                              | Адрес назначения                                 |
-| ----------------------------------------- | ------------------------------------------------ |
-| `/api/collection-service/space-marines`   | `collection-service:8081/api/v1/space-marines`   |
-| `/api/starship-service/starship/1/load/1` | `starship-service:8082/api/v1/starship/1/load/1` |
-| Любой другой путь                         | фронтенд на хосте, порт `3000`                   |
+| Внешний путь                    | Адрес назначения                                 |
+| ------------------------------- | ------------------------------------------------ |
+| `/api/v1/space-marines*`         | `collection-service:8081/api/v1/space-marines*`  |
+| `/api/v1/starship*`              | `starship-service:8082/api/v1/starship*`         |
+| Любой другой путь               | фронтенд на хосте, порт `3000`                   |
 
 Фронтенд должен быть доступен из контейнера через `host.docker.internal:3000`; на Linux обычно требуется слушать
 `0.0.0.0`, а не только `localhost`. Для остановки используйте `docker compose down`.
