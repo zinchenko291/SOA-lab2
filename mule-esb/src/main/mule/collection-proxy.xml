@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+          http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+          http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+
+    <http:listener-config name="collectionProxyListener">
+        <http:listener-connection host="0.0.0.0" port="8084"/>
+    </http:listener-config>
+
+    <http:request-config name="collectionRequest">
+        <http:request-connection protocol="HTTPS" host="collection-service" port="8081">
+            <tls:context>
+                <tls:trust-store path="/opt/mule/conf/collection-truststore.p12" type="PKCS12" password="changeit"/>
+            </tls:context>
+        </http:request-connection>
+    </http:request-config>
+
+    <flow name="getCollectionMarine">
+        <http:listener config-ref="collectionProxyListener" path="/api/v1/space-marines/{id}" allowedMethods="GET">
+            <http:response statusCode="#[attributes.statusCode]">
+                <http:headers><![CDATA[#[attributes.headers.'content-type' match {
+                    case contentType is String -> {'Content-Type': contentType}
+                    else -> {}
+                }]]]></http:headers>
+            </http:response>
+        </http:listener>
+        <http:request config-ref="collectionRequest" method="GET" path="/api/v1/space-marines/{id}"
+                      responseTimeout="4000" followRedirects="false">
+            <http:uri-params>#[{id: attributes.uriParams.id}]</http:uri-params>
+            <http:response-validator>
+                <http:success-status-code-validator values="200..599"/>
+            </http:response-validator>
+        </http:request>
+    </flow>
+</mule>

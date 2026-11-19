@@ -122,13 +122,33 @@ services:
         condition: service_healthy
     restart: on-failure
 
+  mule-esb:
+    build:
+      context: ./mule-esb
+    volumes:
+      - ./certs/ca/root-ca.crt:/certs/ca/root-ca.crt:ro
+    expose:
+      - "8084"
+    depends_on:
+      collection-service:
+        condition: service_started
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - test -f /opt/mule/apps/collection-proxy-anchor.txt && curl -sS --max-time 2 -o /dev/null http://127.0.0.1:8084/
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 60s
+    restart: on-failure
+
   starship-service:
     build:
       context: .
       dockerfile: starship-service/Dockerfile
     environment:
       <<: *java-tls-environment
-      COLLECTION_URL: https://collection-service:8081/api/v1
+      COLLECTION_URL: http://mule-esb:8084/api/v1
       DB_URL: jdbc:postgresql://db:5432/space_marine
       DB_USER: root
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD before starting Compose}
@@ -142,8 +162,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      collection-service:
-        condition: service_started
+      mule-esb:
+        condition: service_healthy
     restart: on-failure
 
   starship-rest-adapter:
