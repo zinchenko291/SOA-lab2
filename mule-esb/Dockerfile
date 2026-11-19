@@ -3,7 +3,8 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /build
 COPY pom.xml mule-artifact.json ./
 COPY src/ src/
-RUN mvn -B -DskipTests package
+# Build-time AST generation requires the Enterprise runtime BOM.
+RUN mvn -B -DskipTests -DskipAST=true package
 
 FROM eclipse-temurin:17-jdk-jammy
 
