@@ -18,8 +18,10 @@ import lombok.With;
 public class Chapter {
     @Column(name = "chapter_name", nullable = false, columnDefinition = "text")
     private String name;
+
     @Column(name = "chapter_parent_legion", columnDefinition = "text")
     private String parentLegion;
+
     @Column(name = "chapter_world", nullable = false, columnDefinition = "text")
     private String world;
 

@@ -1,6 +1,5 @@
 package soa.lab2.adapter;
 
-import java.util.Arrays;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +13,8 @@ import soa.lab2.starship.dto.SpaceMarineDTO;
 import soa.lab2.starship.soap.StarshipFault;
 import soa.lab2.starship.soap.StarshipSoapPort;
 
+import java.util.Arrays;
+
 @RestController
 @RequestMapping(value = "/api/v1", produces = "application/json")
 public class StarshipRestController {
@@ -25,7 +26,7 @@ public class StarshipRestController {
 
     @GetMapping("/starships")
     public PageOfStarshipDTO getStarships(@RequestParam(defaultValue = "0") Integer page,
-                                         @RequestParam(defaultValue = "10") Integer size) throws StarshipFault {
+                                          @RequestParam(defaultValue = "10") Integer size) throws StarshipFault {
         return soap.getStarships(page, size);
     }
 
@@ -42,7 +43,7 @@ public class StarshipRestController {
 
     @PostMapping("/starship/{starshipId}/load/{spaceMarineId}")
     public SpaceMarineDTO load(@PathVariable Integer starshipId,
-                                @PathVariable Integer spaceMarineId) throws StarshipFault {
+                               @PathVariable Integer spaceMarineId) throws StarshipFault {
         return soap.loadSpaceMarine(starshipId, spaceMarineId);
     }
 

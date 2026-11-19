@@ -3,6 +3,8 @@ package soa.lab2.collection.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import soa.lab2.collection.controller.generated.SpaceMarinesCollectionApiDelegate;
 import soa.lab2.collection.dto.PageOfSpaceMarineDTO;
 import soa.lab2.collection.dto.SpaceMarineDTO;
@@ -19,9 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-
 @Component
 public class CollectionApiDelegate implements SpaceMarinesCollectionApiDelegate {
     private final CollectionCommandService commands;
@@ -30,7 +29,7 @@ public class CollectionApiDelegate implements SpaceMarinesCollectionApiDelegate 
     private final HttpServletRequest request;
 
     public CollectionApiDelegate(CollectionCommandService commands, CollectionQueryService queries,
-            SpaceMarineMapper mapper, HttpServletRequest request) {
+                                 SpaceMarineMapper mapper, HttpServletRequest request) {
         this.commands = commands;
         this.queries = queries;
         this.mapper = mapper;
@@ -86,7 +85,7 @@ public class CollectionApiDelegate implements SpaceMarinesCollectionApiDelegate 
 
     @Override
     public ResponseEntity<PageOfSpaceMarineDTO> getSpaceMarines(Integer page, Integer size,
-            List<String> sort, List<String> filter) {
+                                                                List<String> sort, List<String> filter) {
         String[] rawSort = request.getParameterValues("sort");
         String[] rawFilter = request.getParameterValues("filter");
         var result = queries.list(page, size, rawSort == null ? null : Arrays.asList(rawSort),

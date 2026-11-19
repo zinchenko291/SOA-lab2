@@ -18,6 +18,7 @@ import lombok.With;
 public class Coordinates {
     @Column(name = "coordinate_x", nullable = false)
     private Double x;
+
     @Column(name = "coordinate_y", nullable = false)
     private Integer y;
 

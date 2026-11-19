@@ -29,10 +29,13 @@ public class Boarding {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "marine_id", nullable = false)
     private Long marineId;
+
     @Column(name = "starship_id", nullable = false)
     private Long starshipId;
+
     @Column(name = "loaded_at", nullable = false, updatable = false)
     private OffsetDateTime loadedAt;
 

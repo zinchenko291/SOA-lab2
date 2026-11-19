@@ -4,10 +4,14 @@ import jakarta.jws.WebService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
-import soa.lab2.starship.dto.*;
+import soa.lab2.starship.dto.PageOfSpaceMarineDTO;
+import soa.lab2.starship.dto.PageOfStarshipDTO;
+import soa.lab2.starship.dto.SpaceMarineDTO;
+import soa.lab2.starship.dto.StarshipDTO;
 import soa.lab2.starship.mapper.StarshipMapper;
 import soa.lab2.starship.service.StarshipCommandService;
 import soa.lab2.starship.service.StarshipQueryService;
+
 import java.util.List;
 
 @Component
@@ -19,12 +23,15 @@ public class StarshipSoapEndpoint implements StarshipSoapPort {
     private final StarshipMapper mapper;
 
     public StarshipSoapEndpoint(StarshipCommandService commands, StarshipQueryService queries, StarshipMapper mapper) {
-        this.commands = commands; this.queries = queries; this.mapper = mapper;
+        this.commands = commands;
+        this.queries = queries;
+        this.mapper = mapper;
     }
 
     @Override
     public SpaceMarineDTO loadSpaceMarine(Integer starshipId, Integer spaceMarineId) throws StarshipFault {
-        positive(starshipId, "starshipId"); positive(spaceMarineId, "spaceMarineId");
+        positive(starshipId, "starshipId");
+        positive(spaceMarineId, "spaceMarineId");
         return invoke(() -> mapper.toDto(commands.load(starshipId, spaceMarineId)));
     }
 
@@ -36,7 +43,7 @@ public class StarshipSoapEndpoint implements StarshipSoapPort {
 
     @Override
     public PageOfSpaceMarineDTO getStarshipSpaceMarines(Integer starshipId, Integer page, Integer size,
-                                                       List<String> filter) throws StarshipFault {
+                                                        List<String> filter) throws StarshipFault {
         positive(starshipId, "starshipId");
         return invoke(() -> {
             var result = queries.listCrew(starshipId, page, size, filter);

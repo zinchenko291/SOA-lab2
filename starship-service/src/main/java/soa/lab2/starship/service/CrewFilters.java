@@ -1,8 +1,8 @@
 package soa.lab2.starship.service;
 
-import soa.lab2.starship.model.SpaceMarine;
 import soa.lab2.starship.dto.MeleeWeaponDTO;
 import soa.lab2.starship.dto.WeaponDTO;
+import soa.lab2.starship.model.SpaceMarine;
 
 import java.time.DateTimeException;
 import java.time.OffsetDateTime;
@@ -15,9 +15,6 @@ final class CrewFilters {
             "chapter.name", "chapter.parentLegion", "chapter.world");
 
     private CrewFilters() {
-    }
-
-    record Condition(String field, String operator, Comparable<?> value) {
     }
 
     static List<Condition> parse(List<String> filters) {
@@ -89,5 +86,8 @@ final class CrewFilters {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static int compare(Comparable actual, Comparable expected) {
         return actual.compareTo(expected);
+    }
+
+    record Condition(String field, String operator, Comparable<?> value) {
     }
 }

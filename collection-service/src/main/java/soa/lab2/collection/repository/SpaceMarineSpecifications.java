@@ -62,7 +62,7 @@ public class SpaceMarineSpecifications {
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static Specification<SpaceMarine> condition(String field, String operator, Comparable<?> value) {
         return (root, query, builder) -> {
             Path<?> path = root;

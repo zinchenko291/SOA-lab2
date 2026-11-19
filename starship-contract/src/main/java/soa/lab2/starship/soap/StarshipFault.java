@@ -16,5 +16,7 @@ public class StarshipFault extends Exception {
         this.faultInfo = faultInfo;
     }
 
-    public FaultDetail getFaultInfo() { return faultInfo; }
+    public FaultDetail getFaultInfo() {
+        return faultInfo;
+    }
 }

@@ -13,8 +13,6 @@ import soa.lab2.starship.soap.StarshipFault;
 
 @RestControllerAdvice
 public class Errors extends ResponseEntityExceptionHandler {
-    public record ApiError(Integer status, String message, String field) {}
-
     @ExceptionHandler(StarshipFault.class)
     ResponseEntity<Object> soapFault(StarshipFault fault) {
         var detail = fault.getFaultInfo();
@@ -46,5 +44,8 @@ public class Errors extends ResponseEntityExceptionHandler {
             default -> "Не удалось обработать запрос";
         };
         return new ResponseEntity<>(new ApiError(status.value(), message, null), headers, status);
+    }
+
+    public record ApiError(Integer status, String message, String field) {
     }
 }

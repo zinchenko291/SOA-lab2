@@ -31,22 +31,30 @@ public class SpaceMarine {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "creation_date", nullable = false, updatable = false)
     private OffsetDateTime creationDate;
+
     @Column(nullable = false, columnDefinition = "text")
     private String name;
+
     @Embedded
     private Coordinates coordinates;
+
     @Column(nullable = false)
     private Integer health;
+
     @Column(columnDefinition = "text")
     private String achievements;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "weapon_type", nullable = false, columnDefinition = "text")
     private Weapon weaponType;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "melee_weapon", columnDefinition = "text")
     private MeleeWeapon meleeWeapon;
+
     @Embedded
     private Chapter chapter;
 

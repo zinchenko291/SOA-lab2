@@ -12,7 +12,7 @@ public record SpaceMarine(
         String weaponType,
         String meleeWeapon,
         Chapter chapter
-    ) {
+) {
     public record Coordinates(Double x, Integer y) {
     }
 

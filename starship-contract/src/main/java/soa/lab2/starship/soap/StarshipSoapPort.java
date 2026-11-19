@@ -4,7 +4,10 @@ import jakarta.jws.WebMethod;
 import jakarta.jws.WebParam;
 import jakarta.jws.WebService;
 import jakarta.jws.soap.SOAPBinding;
-import soa.lab2.starship.dto.*;
+import soa.lab2.starship.dto.PageOfSpaceMarineDTO;
+import soa.lab2.starship.dto.PageOfStarshipDTO;
+import soa.lab2.starship.dto.SpaceMarineDTO;
+
 import java.util.List;
 
 @WebService(name = "StarshipSoapPort", targetNamespace = "urn:soa:starship:v1")
@@ -12,14 +15,17 @@ import java.util.List;
 public interface StarshipSoapPort {
     @WebMethod
     SpaceMarineDTO loadSpaceMarine(@WebParam(name = "starshipId") Integer starshipId,
-                                  @WebParam(name = "spaceMarineId") Integer spaceMarineId) throws StarshipFault;
+                                   @WebParam(name = "spaceMarineId") Integer spaceMarineId) throws StarshipFault;
+
     @WebMethod
     Integer unloadAll(@WebParam(name = "starshipId") Integer starshipId) throws StarshipFault;
+
     @WebMethod
     PageOfSpaceMarineDTO getStarshipSpaceMarines(@WebParam(name = "starshipId") Integer starshipId,
-            @WebParam(name = "page") Integer page, @WebParam(name = "size") Integer size,
-            @WebParam(name = "filter") List<String> filter) throws StarshipFault;
+                                                 @WebParam(name = "page") Integer page, @WebParam(name = "size") Integer size,
+                                                 @WebParam(name = "filter") List<String> filter) throws StarshipFault;
+
     @WebMethod
     PageOfStarshipDTO getStarships(@WebParam(name = "page") Integer page,
-                                 @WebParam(name = "size") Integer size) throws StarshipFault;
+                                   @WebParam(name = "size") Integer size) throws StarshipFault;
 }

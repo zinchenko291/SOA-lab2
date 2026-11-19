@@ -1,7 +1,5 @@
 package soa.lab2.adapter;
 
-import java.net.ServerSocket;
-import java.util.List;
 import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
@@ -14,17 +12,38 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import soa.lab2.starship.dto.*;
-import soa.lab2.starship.soap.*;
+import soa.lab2.starship.dto.ChapterDTO;
+import soa.lab2.starship.dto.CoordinatesDTO;
+import soa.lab2.starship.dto.PageOfSpaceMarineDTO;
+import soa.lab2.starship.dto.PageOfStarshipDTO;
+import soa.lab2.starship.dto.SpaceMarineDTO;
+import soa.lab2.starship.soap.FaultDetail;
+import soa.lab2.starship.soap.StarshipFault;
+import soa.lab2.starship.soap.StarshipSoapPort;
+
+import java.net.ServerSocket;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class RestSoapIntegrationTest {
     private static final StarshipSoapPort SOAP = mock(StarshipSoapPort.class);
     private static Server server;
     private static int soapPort;
+
+    @Autowired
+    TestRestTemplate rest;
+
+    @Autowired
+    StarshipSoapPort client;
 
     @DynamicPropertySource
     static void upstream(DynamicPropertyRegistry registry) throws Exception {
@@ -39,14 +58,15 @@ class RestSoapIntegrationTest {
         registry.add("starship.soap-url", () -> "http://localhost:" + soapPort + "/services/starships");
     }
 
-    @Autowired TestRestTemplate rest;
-    @Autowired StarshipSoapPort client;
+    @AfterAll
+    static void shutdownSoap() {
+        if (server != null) server.destroy();
+    }
 
     @BeforeEach
-    void resetSoap() { reset(SOAP); }
-
-    @AfterAll
-    static void shutdownSoap() { if (server != null) server.destroy(); }
+    void resetSoap() {
+        reset(SOAP);
+    }
 
     @Test
     void preservesDefaultPaginationAndEmptyContent() throws Exception {
@@ -145,7 +165,9 @@ class RestSoapIntegrationTest {
     @Test
     void mapsUnavailableSoapEndpointToServiceUnavailable() throws Exception {
         int unavailablePort;
-        try (var socket = new ServerSocket(0)) { unavailablePort = socket.getLocalPort(); }
+        try (var socket = new ServerSocket(0)) {
+            unavailablePort = socket.getLocalPort();
+        }
         var context = ((BindingProvider) client).getRequestContext();
         Object original = context.get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY);
         context.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
