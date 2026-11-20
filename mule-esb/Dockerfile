@@ -4,7 +4,8 @@ WORKDIR /build
 COPY pom.xml mule-artifact.json ./
 COPY src/ src/
 # Build-time AST generation requires the Enterprise runtime BOM.
-RUN mvn -B -DskipTests -DskipAST=true package
+RUN --mount=type=cache,id=soa-lab4-mule-maven,target=/root/.m2/repository,sharing=locked \
+    mvn -B -DskipTests -DskipAST=true package
 
 FROM eclipse-temurin:17-jdk-jammy
 
