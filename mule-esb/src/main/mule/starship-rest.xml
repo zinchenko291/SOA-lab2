@@ -27,7 +27,6 @@
     <flow name="starshipRest">
         <http:listener config-ref="starshipRestListener" path="/*">
             <http:response statusCode="#[vars.restResponse.status]">
-                <http:body>#[if (vars.method == 'HEAD' or vars.method == 'OPTIONS') null else payload]</http:body>
                 <http:headers>#[{'Content-Type': 'application/json'} ++ (vars.restResponse.headers default {})]</http:headers>
             </http:response>
         </http:listener>
@@ -41,7 +40,14 @@
                 <flow-ref name="callStarshipSoap"/>
             </when>
         </choice>
-        <set-payload value="#[output application/json --- vars.restResponse.body]"/>
+        <choice>
+            <when expression="#[vars.method == 'HEAD' or vars.method == 'OPTIONS']">
+                <set-payload value="#[null]"/>
+            </when>
+            <otherwise>
+                <set-payload value="#[output application/json --- vars.restResponse.body]"/>
+            </otherwise>
+        </choice>
     </flow>
 
     <sub-flow name="callStarshipSoap">
@@ -56,7 +62,7 @@
                 </http:response-validator>
             </http:request>
             <set-variable variableName="restResponse"
-                          value="#[modules::StarshipRest::soapResponse(payload as Binary, attributes.statusCode, vars.route.name)]"/>
+                          value="#[output application/java --- modules::StarshipRest::soapResponse(payload as Binary, attributes.statusCode, vars.route.name)]"/>
             <logger level="INFO" category="soa.integration"
                     message="[http] service=mule-esb to=starship-service protocol=SOAP operation=#[vars.route.name] status=#[attributes.statusCode] rest_status=#[vars.restResponse.status] correlation_id=#[correlationId]"/>
             <error-handler>
