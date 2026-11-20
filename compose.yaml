@@ -125,8 +125,6 @@ services:
   mule-esb:
     build:
       context: ./mule-esb
-    environment:
-      JAVA_TOOL_OPTIONS: "-Dmule.forceConsoleLog=true"
     volumes:
       - ./certs/ca/root-ca.crt:/certs/ca/root-ca.crt:ro
     expose:

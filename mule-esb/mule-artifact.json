@@ -1,5 +1,6 @@
 {
   "minMuleVersion": "4.9.0",
   "requiredProduct": "MULE",
+  "logConfigFile": "log4j2.xml",
   "javaSpecificationVersions": ["17"]
 }

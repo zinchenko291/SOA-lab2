@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="IntegrationConsole" target="SYSTEM_OUT" direct="true">
+            <PatternLayout pattern="%d{ISO8601} %-5level %msg%n"/>
+        </Console>
+        <RollingFile name="ApplicationFile"
+                     fileName="${sys:mule.home}/logs/mule-app-collection-proxy.log"
+                     filePattern="${sys:mule.home}/logs/mule-app-collection-proxy.%i.log.gz">
+            <PatternLayout pattern="%d{ISO8601} %-5level %logger - %msg%n"/>
+            <SizeBasedTriggeringPolicy size="10 MB"/>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="soa.integration" level="INFO">
+            <AppenderRef ref="IntegrationConsole"/>
+        </Logger>
+        <Root level="INFO">
+            <AppenderRef ref="ApplicationFile"/>
+        </Root>
+    </Loggers>
+</Configuration>
