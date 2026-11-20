@@ -1,12 +1,12 @@
 # Starship: SOAP и REST-адаптер
 
-Объяснение изменений, архитектуры и протокола: [docs/soap-migration.html](docs/soap-migration.html). Откройте файл в браузере.
+Описание SOAP-контракта и первого этапа миграции находится в [docs/soap-migration.html](docs/soap-migration.html).
 
-Вызывающий `starship-service` предоставляет SOAP 1.1 на `/services/starships` и WSDL на `/services/starships?wsdl`. Отдельный `starship-rest-adapter` сохраняет прежние REST-операции и вызывает только SOAP. Gateway направляет прежние клиентские адреса на адаптер. Исходники фронтенда не изменены.
+Вызывающий `starship-service` предоставляет SOAP 1.1 на `/services/starships` и WSDL на `/services/starships?wsdl`. Gateway направляет прежние REST-адреса Starship в Mule. Mule переводит REST в SOAP и отдельно проксирует вызовы Starship к REST API Collection.
 
 ## Локальный запуск (Windows / PowerShell)
 
-Нужны JDK 21, Docker, Node.js 22.6+ для дополнительной проверки исходных клиентских TypeScript-схем. Maven скачивается wrapper-скриптом.
+Нужны JDK 21, Docker Desktop и Node.js 22.6+ для дополнительной проверки исходных клиентских TypeScript-схем. Maven скачивается wrapper-скриптом. Для сборки Mule положите архив `mule-standalone-4.9.0.tar.gz` в каталог `mule-esb/`.
 
 ```powershell
 cd soa-front
@@ -15,7 +15,7 @@ cd ..
 .\scripts\start-local.ps1 -WithFrontend
 ```
 
-Скрипт делает чистую сборку с тестами, поднимает отдельную PostgreSQL на порту 55432, Config Server, Eureka, Collection, SOAP Starship, REST-адаптер, gateway и фронтенд. Повторный запуск с готовыми артефактами: `-SkipBuild`. Существующие процессы нужно сначала остановить.
+Скрипт собирает приложения с тестами, запускает PostgreSQL и Mule в Docker, а Config Server, Eureka, Collection, SOAP Starship, gateway и фронтенд на хосте. Для повторного запуска с готовыми артефактами используйте `-SkipBuild`. Существующие процессы нужно сначала остановить.
 
 - Клиент: http://localhost:3000/
 - REST через gateway: http://localhost:18080/api/starship-service/starships
@@ -40,10 +40,8 @@ node --experimental-strip-types scripts/test-e2e.mjs --client-schemas
 
 ## Проверки
 
-19.11.2026: `mvnw.cmd -B clean package` — успешно; 4 SOAP HTTP-теста и 9 REST→SOAP HTTP-тестов прошли. Сквозной прогон с настоящей PostgreSQL — 26/26, включая проверку исходными Zod-схемами фронтенда. `rsbuild build` — успешно; страницы `/`, `/starships`, `/space-marines` возвращают HTTP 200. После тестов временные десантники и записи о посадках удалены.
-
-Визуальная проверка браузером не завершена: Computer Use не смог определить URL Chrome. HTTPS-развёртывание не запускалось: в репозитории отсутствуют сертификаты.
+SOAP-контракт проверяется тестами Maven. Сквозной сценарий проверяет четыре REST-операции через gateway, преобразование ошибок, повторяющиеся фильтры и JSON-формат фронтенда.
 
 ## Docker с HTTPS
 
-Основной `compose.yaml` сохраняет TLS. Дополнительно к существующим сертификатам нужен `certs/starship-rest-adapter/keystore.p12` с DNS-именем `starship-rest-adapter`, подписанный используемым CA. Нужны переменные `TLS_STORE_PASSWORD` и `DB_PASSWORD`, как и ранее. Запуск: `docker compose up --build -d`. Адаптер вызывает SOAP через HAProxy, балансирующий два экземпляра `starship-service`; проверка доступности HAProxy использует WSDL.
+Для запуска нужны существующие сертификаты, переменные `TLS_STORE_PASSWORD` и `DB_PASSWORD` и архив Mule в `mule-esb/`. Gateway передаёт REST в Mule по HTTP внутри сети Docker. Mule вызывает SOAP по HTTPS через HAProxy и обращается к Collection по HTTPS. Чтобы при обновлении убрать контейнер старого REST-адаптера из проекта Compose, используйте `docker compose up --build -d --remove-orphans`.

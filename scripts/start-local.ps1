@@ -8,16 +8,15 @@ if (-not $SkipBuild) {
     & .\mvnw.cmd -B clean package
     if ($LASTEXITCODE -ne 0) { throw 'Maven build failed' }
 }
-& docker compose -p soa-lab2-local -f compose.local.yaml up -d --wait
+& docker compose -p soa-lab2-local -f compose.local.yaml up -d --wait db
 if ($LASTEXITCODE -ne 0) { throw 'Local database did not start' }
 $env:DB_URL = 'jdbc:postgresql://localhost:55432/space_marine'
 $env:DB_USER = 'root'
 $env:DB_PASSWORD = 'local-development'
 $env:CONFIG_SERVER_URL = 'http://localhost:8888'
 $env:EUREKA_URL = 'http://localhost:8761/eureka/'
-$env:COLLECTION_URL = 'http://localhost:8081/api/v1'
+$env:COLLECTION_URL = 'http://localhost:8084/api/v1'
 $env:STARSHIP_URL = 'http://localhost:8083'
-$env:STARSHIP_SOAP_URL = 'http://localhost:8082/services/starships'
 $env:SPACE_MARINES_API_URL = 'http://localhost:18080/collection-service'
 $env:STARSHIPS_API_URL = 'http://localhost:18080/starship-service'
 $env:HTTP_ACCESS_LOG_DIRECTORY = $runDirectory
@@ -50,8 +49,13 @@ function Start-ServiceJar([string]$Name, [string]$Artifact, [string[]]$ExtraArgu
 Start-ServiceJar 'config-server' 'config-server-1.0.0.jar' @('--server.port=8888') 'http://localhost:8888/collection-service/default'
 Start-ServiceJar 'eureka-server' 'eureka-server-1.0.0.jar' @('--server.port=8761') 'http://localhost:8761/'
 Start-ServiceJar 'collection-service' 'collection-service-1.0.0.war' @('--server.port=8081') 'http://localhost:8081/api/v1/space-marines'
+if ($SkipBuild) {
+    & docker compose -p soa-lab2-local -f compose.local.yaml up -d --wait mule-esb
+} else {
+    & docker compose -p soa-lab2-local -f compose.local.yaml up -d --wait --build mule-esb
+}
+if ($LASTEXITCODE -ne 0) { throw 'Local Mule did not start' }
 Start-ServiceJar 'starship-service' 'starship-service-1.0.0.jar' @('--server.port=8082') 'http://localhost:8082/services/starships?wsdl'
-Start-ServiceJar 'starship-rest-adapter' 'starship-rest-adapter-1.0.0.jar' @('--server.port=8083') 'http://localhost:8083/api/v1/starships'
 # Static collection URL avoids waiting for the Eureka client registry refresh locally.
 Start-ServiceJar 'api-gateway' 'api-gateway-1.0.0.jar' @('--server.port=18080', '--zuul.routes.collection-api.url=http://localhost:8081', '--zuul.routes.collection-resources.url=http://localhost:8081') 'http://localhost:18080/api/starship-service/starships'
 if ($WithFrontend) {

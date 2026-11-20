@@ -14,5 +14,24 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+  mule-esb:
+    build:
+      context: ./mule-esb
+    environment:
+      COLLECTION_REQUEST_CONFIG: collectionHttp
+      COLLECTION_HOST: host.docker.internal
+      STARSHIP_SOAP_REQUEST_CONFIG: starshipSoapHttp
+      STARSHIP_SOAP_HOST: host.docker.internal
+      UPSTREAM_TRUSTSTORE: /opt/java/openjdk/lib/security/cacerts
+      UPSTREAM_TRUSTSTORE_TYPE: JKS
+    ports:
+      - "127.0.0.1:8083:8083"
+      - "127.0.0.1:8084:8084"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "--max-time", "2", "-o", "/dev/null", "http://127.0.0.1:8083/openapi.yaml"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 45s
 volumes:
   local_postgres_data:

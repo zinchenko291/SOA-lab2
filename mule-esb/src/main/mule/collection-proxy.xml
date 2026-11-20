@@ -12,12 +12,19 @@
         <http:listener-connection host="0.0.0.0" port="8084"/>
     </http:listener-config>
 
-    <http:request-config name="collectionRequest">
-        <http:request-connection protocol="HTTPS" host="collection-service" port="8081">
-            <tls:context>
-                <tls:trust-store path="/opt/mule/conf/collection-truststore.p12" type="PKCS12" password="changeit"/>
-            </tls:context>
-        </http:request-connection>
+    <configuration-properties file="upstreams.properties"/>
+
+    <tls:context name="upstreamTls">
+        <tls:trust-store path="${UPSTREAM_TRUSTSTORE}" type="${UPSTREAM_TRUSTSTORE_TYPE}" password="changeit"/>
+    </tls:context>
+
+    <http:request-config name="collectionHttps">
+        <http:request-connection protocol="HTTPS" host="${COLLECTION_HOST}"
+                                 port="${COLLECTION_PORT}" tlsContext="upstreamTls"/>
+    </http:request-config>
+
+    <http:request-config name="collectionHttp">
+        <http:request-connection host="${COLLECTION_HOST}" port="${COLLECTION_PORT}"/>
     </http:request-config>
 
     <flow name="getCollectionMarine">
@@ -31,7 +38,7 @@
         </http:listener>
         <set-variable variableName="requestPath" value="#[attributes.requestPath]"/>
         <set-variable variableName="requestStartedAt" value="#[now() as Number {unit: 'milliseconds'}]"/>
-        <http:request config-ref="collectionRequest" method="GET" path="/api/v1/space-marines/{id}"
+        <http:request config-ref="${COLLECTION_REQUEST_CONFIG}" method="GET" path="/api/v1/space-marines/{id}"
                       responseTimeout="4000" followRedirects="false">
             <http:uri-params>#[{id: attributes.uriParams.id}]</http:uri-params>
             <http:response-validator>

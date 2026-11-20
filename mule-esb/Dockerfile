@@ -20,5 +20,5 @@ COPY docker-entrypoint.sh /usr/local/bin/mule-entrypoint
 RUN chmod +x /usr/local/bin/mule-entrypoint
 
 WORKDIR /opt/mule
-EXPOSE 8084
+EXPOSE 8083 8084
 ENTRYPOINT ["/usr/local/bin/mule-entrypoint"]

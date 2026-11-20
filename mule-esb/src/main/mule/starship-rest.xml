@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+          http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <http:listener-config name="starshipRestListener">
+        <http:listener-connection host="0.0.0.0" port="8083"/>
+    </http:listener-config>
+
+    <http:request-config name="starshipSoapHttps">
+        <http:request-connection protocol="HTTPS" host="${STARSHIP_SOAP_HOST}"
+                                 port="${STARSHIP_SOAP_PORT}" tlsContext="upstreamTls"/>
+    </http:request-config>
+
+    <http:request-config name="starshipSoapHttp">
+        <http:request-connection host="${STARSHIP_SOAP_HOST}" port="${STARSHIP_SOAP_PORT}"/>
+    </http:request-config>
+
+    <flow name="starshipOpenApi">
+        <http:listener config-ref="starshipRestListener" path="/openapi.yaml" allowedMethods="GET,HEAD"/>
+        <set-payload value="#[readUrl('classpath://openapi.yaml', 'text/plain')]" mimeType="application/yaml"/>
+    </flow>
+
+    <flow name="starshipRest">
+        <http:listener config-ref="starshipRestListener" path="/*">
+            <http:response statusCode="#[vars.restResponse.status]">
+                <http:body>#[if (vars.method == 'HEAD' or vars.method == 'OPTIONS') null else payload]</http:body>
+                <http:headers>#[{'Content-Type': 'application/json'} ++ (vars.restResponse.headers default {})]</http:headers>
+            </http:response>
+        </http:listener>
+        <set-variable variableName="method" value="#[attributes.method]"/>
+        <set-variable variableName="route"
+                      value="#[modules::StarshipRest::operation(attributes.requestPath, attributes.queryParams)]"/>
+        <set-variable variableName="restResponse"
+                      value="#[modules::StarshipRest::requestError(vars.route, attributes.method, attributes.headers.accept)]"/>
+        <choice>
+            <when expression="#[vars.restResponse == null]">
+                <flow-ref name="callStarshipSoap"/>
+            </when>
+        </choice>
+        <set-payload value="#[output application/json --- vars.restResponse.body]"/>
+    </flow>
+
+    <sub-flow name="callStarshipSoap">
+        <set-payload value="#[output application/xml --- modules::StarshipRest::soapRequest(vars.route)]"
+                     mimeType="text/xml" encoding="UTF-8"/>
+        <try>
+            <http:request config-ref="${STARSHIP_SOAP_REQUEST_CONFIG}" method="POST" path="/services/starships"
+                          responseTimeout="15000" followRedirects="false" outputMimeType="application/octet-stream">
+                <http:headers>#[{SOAPAction: '""'}]</http:headers>
+                <http:response-validator>
+                    <http:success-status-code-validator values="200..599"/>
+                </http:response-validator>
+            </http:request>
+            <set-variable variableName="restResponse"
+                          value="#[modules::StarshipRest::soapResponse(payload as Binary, attributes.statusCode, vars.route.name)]"/>
+            <logger level="INFO" category="soa.integration"
+                    message="[http] service=mule-esb to=starship-service protocol=SOAP operation=#[vars.route.name] status=#[attributes.statusCode] rest_status=#[vars.restResponse.status] correlation_id=#[correlationId]"/>
+            <error-handler>
+                <on-error-continue type="HTTP:CONNECTIVITY,HTTP:TIMEOUT" logException="false">
+                    <set-variable variableName="restResponse" value="#[modules::StarshipRest::unavailable()]"/>
+                    <logger level="ERROR" category="soa.integration"
+                            message="[http] service=mule-esb to=starship-service protocol=SOAP operation=#[vars.route.name] error=#[error.errorType.identifier] correlation_id=#[correlationId]"/>
+                </on-error-continue>
+            </error-handler>
+        </try>
+    </sub-flow>
+</mule>

@@ -63,6 +63,13 @@ try {
   await check('SOAP service no longer exposes old REST endpoints', async () => {
     assert.equal((await request(`${new URL(soapUrl).origin}/api/v1/starships`)).status, 404);
   });
+  await check('Gateway preserves the Starship resource route and OpenAPI URL', async () => {
+    const resources = `${gateway}/starship-service`;
+    const spec = await request(`${resources}/openapi.yaml`);
+    assert.equal(spec.status, 200);
+    assert.match(spec.data, /openapi: 3\.0\.3/);
+    assert.deepEqual(await status(`${resources}/api/v1/starships`, 200), await status(`${rest}/starships`, 200));
+  });
   await check('Direct SOAP call returns an XML envelope', async () => {
     const result = await soap('getStarships', '<page>0</page><size>10</size>');
     assert.equal(result.status, 200); assert.match(result.xml, /Envelope/); assert.match(result.xml, /getStarshipsResponse/);
